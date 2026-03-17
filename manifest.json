@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "ARIA Live Region Announcer",
+  "version": "0.1.0",
+  "description": "Shows toast notifications when live regions announce new text.",
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/content/live-announcer.js"
+      ],
+      "css": [
+        "src/content/live-announcer.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "aria-live-announcer@local",
+      "strict_min_version": "109.0"
+    }
+  }
+}
