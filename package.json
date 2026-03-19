@@ -1,0 +1,8 @@
+{
+  "name": "live-announcer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "package": "mkdir -p dist && rm -f dist/live-announcer.xpi && git archive --format=zip --output=dist/live-announcer.xpi HEAD manifest.json src icon-disabled.svg icon-enbabled.svg"
+  }
+}

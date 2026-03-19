@@ -24,8 +24,17 @@ Firefox WebExtension for debugging ARIA live regions by showing toast messages w
 3. Select this project's `manifest.json`.
 4. Open an `http` or `https` page and click the toolbar icon to enable announcements for that hostname.
 
+## Package as `.xpi`
+
+```bash
+npm run package
+```
+
+This creates `dist/live-announcer.xpi` with `manifest.json` at the archive root.
+It uses Git archive, so only committed files are included.
+
 ## Development notes
 
 - Entry script: `src/content/live-announcer.js`
 - Toast styles: `src/content/live-announcer.css`
-- No build step is required right now.
+- Packaging script: `npm run package`
