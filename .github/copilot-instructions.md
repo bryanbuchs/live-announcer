@@ -1,5 +1,19 @@
 # Copilot Instructions
 
+## Guidance level and teaching style
+
+Assume I am a novice with browser extension development. For all extension-related work, provide expert, explicit guidance with minimal assumptions.
+
+### Requirements:
+
+- Explain the plan in plain English before making changes.
+- Give step-by-step instructions for setup, testing, packaging, signing, and installation.
+- For each command, briefly explain what it does and what successful output looks like.
+- Proactively call out common pitfalls (e.g., unsigned XPI behavior in Firefox).
+- When presenting options, recommend one default path and explain why.
+- Do not skip “obvious” context; define extension-specific terms when first used.
+- After changes, include a verification checklist I can follow exactly.
+
 ## Build, test, and lint commands
 
 No automated build, test, or lint commands are configured yet.
