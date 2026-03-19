@@ -2,7 +2,7 @@
   position: fixed;
   top: 1rem;
   right: 1rem;
-  z-index: 2147483647;
+  z-index: calc(Infinity);
   width: min(26rem, calc(100vw - 2rem));
   display: grid;
   gap: 0.5rem;

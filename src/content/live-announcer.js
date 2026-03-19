@@ -1,4 +1,6 @@
 const DEBUG_PREFIX = '[live-announcer]';
+const MESSAGE_TYPE_GET_DOMAIN_STATE = 'liveAnnouncer:getDomainState';
+const MESSAGE_TYPE_SET_ENABLED = 'liveAnnouncer:setEnabled';
 const IMPLICIT_LIVE_ROLE_TO_POLITENESS = {
   alert: 'assertive',
   status: 'polite',
@@ -21,16 +23,27 @@ const MAX_TOAST_TEXT_LENGTH = 280;
 const MAX_STACKED_TOASTS = 6;
 const EXTENSION_UI_ATTRIBUTE = 'data-live-announcer-ui';
 const observerState = {
+  enabled: false,
   started: false,
   mutationObserver: null,
   trackedRegions: new Set(),
   lastTextByRegion: new WeakMap(),
   lastAnnouncementTimeByRegion: new WeakMap(),
-  pendingAnnouncementTimerByRegion: new WeakMap(),
+  pendingAnnouncementTimerByRegion: new Map(),
   regionLabelByElement: new WeakMap(),
   nextRegionIndex: 1,
   toastContainer: null
 };
+
+function isExpectedMessagingError(error) {
+  return (
+    typeof error?.message === 'string' &&
+    (
+      error.message.includes('Could not establish connection') ||
+      error.message.includes('The message port closed before a response was received')
+    )
+  );
+}
 
 function normalizeText(value) {
   return value.replace(/\s+/g, ' ').trim();
@@ -108,6 +121,10 @@ function getToastContainer() {
 }
 
 function renderToast(messageText, politeness) {
+  if (!observerState.enabled) {
+    return;
+  }
+
   const toastContainer = getToastContainer();
   const toastElement = document.createElement('article');
   toastElement.className = 'live-announcer-toast';
@@ -232,6 +249,13 @@ function trackRegion(regionElement) {
 }
 
 function untrackRegion(regionElement) {
+  const pendingTimer = observerState.pendingAnnouncementTimerByRegion.get(regionElement);
+
+  if (pendingTimer) {
+    window.clearTimeout(pendingTimer);
+    observerState.pendingAnnouncementTimerByRegion.delete(regionElement);
+  }
+
   observerState.trackedRegions.delete(regionElement);
 }
 
@@ -339,8 +363,31 @@ function handleMutationRecords(mutationRecords) {
   });
 }
 
+function clearPendingAnnouncementTimers() {
+  observerState.pendingAnnouncementTimerByRegion.forEach((timerId) => {
+    window.clearTimeout(timerId);
+  });
+  observerState.pendingAnnouncementTimerByRegion = new Map();
+}
+
+function removeToastContainer() {
+  if (observerState.toastContainer?.isConnected) {
+    observerState.toastContainer.remove();
+  }
+
+  observerState.toastContainer = null;
+}
+
+function resetObserverTracking() {
+  observerState.trackedRegions = new Set();
+  observerState.lastTextByRegion = new WeakMap();
+  observerState.lastAnnouncementTimeByRegion = new WeakMap();
+  observerState.regionLabelByElement = new WeakMap();
+  observerState.nextRegionIndex = 1;
+}
+
 function startObserver() {
-  if (observerState.started) {
+  if (observerState.started || !observerState.enabled) {
     return;
   }
 
@@ -361,4 +408,55 @@ function startObserver() {
   );
 }
 
-startObserver();
+function stopObserver() {
+  if (observerState.mutationObserver) {
+    observerState.mutationObserver.disconnect();
+    observerState.mutationObserver = null;
+  }
+
+  clearPendingAnnouncementTimers();
+  removeToastContainer();
+  resetObserverTracking();
+  observerState.started = false;
+}
+
+function setExtensionEnabled(nextEnabled) {
+  observerState.enabled = Boolean(nextEnabled);
+
+  if (observerState.enabled) {
+    startObserver();
+    return;
+  }
+
+  stopObserver();
+}
+
+function requestInitialEnabledState() {
+  return browser.runtime
+    .sendMessage({
+      type: MESSAGE_TYPE_GET_DOMAIN_STATE
+    })
+    .then((response) => {
+      const enabled = Boolean(response?.enabled);
+      setExtensionEnabled(enabled);
+      console.info(`${DEBUG_PREFIX} domain state initialized: ${enabled ? 'on' : 'off'}`);
+    })
+    .catch((error) => {
+      if (!isExpectedMessagingError(error)) {
+        console.error(`${DEBUG_PREFIX} failed to read domain state`, error);
+      }
+
+      setExtensionEnabled(false);
+    });
+}
+
+browser.runtime.onMessage.addListener((message) => {
+  if (!message || message.type !== MESSAGE_TYPE_SET_ENABLED) {
+    return undefined;
+  }
+
+  setExtensionEnabled(Boolean(message.enabled));
+  return Promise.resolve({ ok: true });
+});
+
+requestInitialEnabledState();

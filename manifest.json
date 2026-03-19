@@ -3,6 +3,22 @@
   "name": "ARIA Live Region Announcer",
   "version": "0.1.0",
   "description": "Shows toast notifications when live regions announce new text.",
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "action": {
+    "default_title": "Live Announcer: off for this domain",
+    "default_icon": {
+      "16": "icon-disabled.svg",
+      "32": "icon-disabled.svg"
+    }
+  },
+  "background": {
+    "scripts": [
+      "src/background/domain-toggle.js"
+    ]
+  },
   "content_scripts": [
     {
       "matches": [
