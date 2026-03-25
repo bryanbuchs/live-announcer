@@ -1,4 +1,3 @@
-const DEBUG_PREFIX = '[live-announcer:background]';
 const DOMAIN_SETTINGS_STORAGE_KEY = 'enabledHostnamesByDomain';
 const MESSAGE_TYPE_GET_DOMAIN_STATE = 'liveAnnouncer:getDomainState';
 const MESSAGE_TYPE_SET_ENABLED = 'liveAnnouncer:setEnabled';
@@ -150,7 +149,7 @@ async function notifyDomainTabs(hostname, isEnabled) {
         })
         .catch((error) => {
           if (!isExpectedMessagingError(error)) {
-            console.error(`${DEBUG_PREFIX} failed to notify tab ${tab.id}`, error);
+            console.error(`Live Announcer failed to notify tab ${tab.id}`, error);
           }
         })
     )
@@ -192,7 +191,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
 
 browser.action.onClicked.addListener((tab) => {
   handleActionClick(tab).catch((error) => {
-    console.error(`${DEBUG_PREFIX} failed to handle action click`, error);
+    console.error('Live Announcer failed to handle action click', error);
   });
 });
 
@@ -201,7 +200,7 @@ browser.tabs.onActivated.addListener(({ tabId }) => {
     .get(tabId)
     .then((tab) => updateActionForTab(tab))
     .catch((error) => {
-      console.error(`${DEBUG_PREFIX} failed to update action on activate`, error);
+      console.error('Live Announcer failed to update action on activate', error);
     });
 });
 
@@ -211,16 +210,16 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 
   updateActionForTab(tab).catch((error) => {
-    console.error(`${DEBUG_PREFIX} failed to update action on tab update`, error);
+    console.error('Live Announcer failed to update action on tab update', error);
   });
 });
 
 browser.tabs.onCreated.addListener((tab) => {
   updateActionForTab(tab).catch((error) => {
-    console.error(`${DEBUG_PREFIX} failed to update action on tab create`, error);
+    console.error('Live Announcer failed to update action on tab create', error);
   });
 });
 
 syncActionForAllTabs().catch((error) => {
-  console.error(`${DEBUG_PREFIX} failed to initialize action state`, error);
+  console.error('Live Announcer failed to initialize action state', error);
 });

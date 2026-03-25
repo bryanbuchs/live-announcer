@@ -1,4 +1,3 @@
-const DEBUG_PREFIX = '[live-announcer]';
 const MESSAGE_TYPE_GET_DOMAIN_STATE = 'liveAnnouncer:getDomainState';
 const MESSAGE_TYPE_SET_ENABLED = 'liveAnnouncer:setEnabled';
 const IMPLICIT_LIVE_ROLE_TO_POLITENESS = {
@@ -403,9 +402,6 @@ function startObserver() {
     attributeFilter: ['aria-live', 'role']
   });
 
-  console.info(
-    `${DEBUG_PREFIX} watching ${observerState.trackedRegions.size} live region(s) in main document`
-  );
 }
 
 function stopObserver() {
@@ -439,11 +435,10 @@ function requestInitialEnabledState() {
     .then((response) => {
       const enabled = Boolean(response?.enabled);
       setExtensionEnabled(enabled);
-      console.info(`${DEBUG_PREFIX} domain state initialized: ${enabled ? 'on' : 'off'}`);
     })
     .catch((error) => {
       if (!isExpectedMessagingError(error)) {
-        console.error(`${DEBUG_PREFIX} failed to read domain state`, error);
+        console.error('Live Announcer failed to read domain state', error);
       }
 
       setExtensionEnabled(false);
